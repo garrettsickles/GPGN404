@@ -155,7 +155,7 @@ ylabel('Amplitude');
 title('Signal Difference: #2c');
 
 % ----------------- 3b -----------------
-Fs = 100;
+Fs = 1000;
 period = 1.0;
 time = 0.0:1/Fs:4.0;
 
@@ -186,20 +186,6 @@ Xk = fftshift(fft(Xt)) / length(time);
 Fk = -Fs/2:Fs/length(time):Fs/2;
 Fk = Fk(1:length(time));
 
-figure('position', [0, 0, 750, 250]);
-stem(Fk, abs(Xk));
-axis tight;
-xlabel('Frequency (Hz)');
-ylabel('Amplitude');
-title('Amplitude Spectrum: #3c');
-
-figure('position', [0, 0, 750, 250]);
-stem(Fk, angle(Xk));
-axis tight;
-xlabel('Frequency (Hz)');
-ylabel('Phase (rad)');
-title('Phase Spectrum: #3d');
-
 % ----------------- 3e -----------------
 harmonic = 100;
 Fs = 100;
@@ -207,16 +193,34 @@ period = 1.0;
 time = 0.0:1/Fs:4.0;
 
 harmonic_matrix = zeros(2*harmonic+1, length(time));
+c = zeros(2*harmonic+1,1);
 for k=-harmonic:harmonic
     row = k + 1 + harmonic;
     if mod(k,2)
-       harmonic_matrix(row,:) = (1i*3.14159*k).^(-1)*exp((2i*3.14159*k*time)/period);
+        c(row) = (1i*3.14159*k).^(-1);
+        harmonic_matrix(row,:) = (1i*3.14159*k).^(-1)*exp((2i*3.14159*k*time)/period);
     elseif k == 0
-       harmonic_matrix(row,:) = harmonic_matrix(row) + 0.5;
+        c(row) = 0.5;
+        harmonic_matrix(row,:) = harmonic_matrix(row) + 0.5;
     else
-       harmonic_matrix(row,:) = 0.0;
+        c(row) = 0.0;
+        harmonic_matrix(row,:) = 0.0;
     end
 end
+
+figure('position', [0, 0, 750, 250]);
+stem(-100:1:100, abs(c));
+axis tight;
+xlabel('Frequency (Hz)');
+ylabel('Amplitude');
+title('Amplitude Spectrum: #3c');
+
+figure('position', [0, 0, 750, 250]);
+stem(-100:1:100, angle(c));
+axis tight;
+xlabel('Frequency (Hz)');
+ylabel('Phase (rad)');
+title('Phase Spectrum: #3d');
 
 h = 3;
 Xt = zeros(1,length(time));
