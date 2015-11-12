@@ -1,5 +1,6 @@
 % --------------------- Question 1 -----------------------
 function Lab06()
+    invalid = -9999;
     filename = 'Lab6_t_T.csv';
     data = importdata(filename);
     data = data.data;
@@ -13,21 +14,35 @@ function Lab06()
     
     fixedDates = serialDates(1):1:serialDates(length(serialDates));
     
-    for i=2:length(dates)
-        if Tmax(i) == -9999
-            Tmax(i) = Tmax(i-1);
+    fixedTmin(1) = Tmin(1);
+    fixedTmax(1) = Tmax(1);
+    for i=2:length(serialDates)
+        d = serialDates(i) - serialDates(i-1);
+        if d > 1
+            fixedTmax = vertcat(fixedTmax, ones(d-1, 1).*invalid); 
+            fixedTmin = vertcat(fixedTmin, ones(d-1, 1).*invalid);
         end
-        if Tmin(i) == -9999
-            Tmin(i) = Tmin(i-1);
+        fixedTmax = vertcat(fixedTmax, Tmax(i));
+        fixedTmin = vertcat(fixedTmin, Tmin(i));
+    end
+    
+    for i=2:length(fixedDates)
+        if fixedTmax(i) == invalid
+            fixedTmax(i) = fixedTmax(i-1);
+        end
+        if fixedTmin(i) == invalid
+            fixedTmin(i) = fixedTmin(i-1);
         end
     end
-    MAF = MovingAverage(Tmax, period);
+    
+    
+    MAF = MovingAverage(fixedTmax, period);
     
     figure;
-    plot(serialDates, [Tmax, MAF((period-1)/2:(period-1)/2 - 1 + length(serialDates))]);
-    
-    figure;
-    plot(serialDates);
+    % plot(serialDates, [Tmax, MAF((period-1)/2:(period-1)/2 - 1 + length(serialDates))]);
+    plot(fixedDates, fixedTmax);
+    hold on;
+    plot(MAF(1:length(MAF)));
 end
 
 % Discrete Convolution 
@@ -49,4 +64,7 @@ end
 % Tapered Moving Average Filter
 function [result] = NoLagMovingAverage(input, number)
     result = MovingAverage(input);
+    for i=1:number
+        result(i) = result(i) * (number / i);
+    end
 end
