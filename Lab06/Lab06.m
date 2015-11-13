@@ -36,13 +36,71 @@ function Lab06()
     end
     
     
-    MAF = MovingAverage(fixedTmax, period);
+    MAF_Tmax = MovingAverage(fixedTmax, period);
+    NLMAF_Tmax = NoLagMovingAverage(fixedTmax, period);
+    MAF_Tmin = MovingAverage(fixedTmin, period);
+    NLMAF_Tmin = NoLagMovingAverage(fixedTmin, period);
     
-    figure;
-    % plot(serialDates, [Tmax, MAF((period-1)/2:(period-1)/2 - 1 + length(serialDates))]);
-    plot(fixedDates, fixedTmax);
+    figure('position', [0, 0, 600, 250]);
+    plot(fixedDates, fixedTmax, 'color', [0.0,0.0,0.0]+0.6);
     hold on;
-    plot(MAF(1:length(MAF)));
+    plot(MAF_Tmax(1:length(MAF_Tmax)));
+    axis tight;
+    title('Maximum Temperature Raw Moving Average');
+    xlabel('# of Days since 1 January 1893');
+    ylabel('Tenths of ^{o}C');
+    legend('T_{max}','T_{max} Moving Average');
+    
+    figure('position', [0, 0, 600, 250]);
+    plot(fixedDates, fixedTmin, 'color', [0.0,0.0,0.0]+0.6);
+    hold on;
+    plot(MAF_Tmin(1:length(MAF_Tmin)));
+    axis tight;
+    title('Minimum Temperature Raw Moving Average');
+    xlabel('# of Days since 1 January 1893');
+    ylabel('Tenths of ^{o}C');
+    legend('T_{min}','T_{min} Moving Average');
+    
+    figure('position', [0, 0, 600, 250]);
+    plot(fixedDates, fixedTmax, 'color', [0.0,0.0,0.0]+0.6);
+    hold on;
+    plot(NLMAF_Tmax(1:length(NLMAF_Tmax)));
+    axis tight;
+    title('Maximum Temperature No Lag Moving Average');
+    xlabel('# of Days since 1 January 1893');
+    ylabel('Tenths of ^{o}C');
+    legend('T_{max}','T_{max} Moving Average');
+    
+    figure('position', [0, 0, 600, 250]);
+    plot(fixedDates, fixedTmin, 'color', [0.0,0.0,0.0]+0.6);
+    hold on;
+    plot(NLMAF_Tmin(1:length(NLMAF_Tmin)));
+    axis tight;
+    title('Minimum Temperature No Lag Moving Average');
+    xlabel('# of Days since 1 January 1893');
+    ylabel('Tenths of ^{o}C');
+    legend('T_{min}','T_{min} Moving Average');
+    
+    figure('position', [0, 0, 600, 250]);
+    subplot(1,2,1);
+    plot(fixedDates, fixedTmax, 'color', [0.0,0.0,0.0]+0.6);
+    hold on;
+    plot(MAF_Tmax(1:length(MAF_Tmax)));
+    axis tight;
+    title('Maximum Temperature Raw Moving Average');
+    xlabel('# of Days since 1 January 1893');
+    ylabel('Tenths of ^{o}C');
+    legend('T_{max}','T_{max} Moving Average');
+    
+    subplot(1,2,2);
+    plot(fixedDates, fixedTmax, 'color', [0.0,0.0,0.0]+0.6);
+    hold on;
+    plot(NLMAF_Tmax(1:length(NLMAF_Tmax)));
+    axis tight;
+    title('Maximum Temperature No Lag Moving Average');
+    xlabel('# of Days since 1 January 1893');
+    ylabel('Tenths of ^{o}C');
+    legend('T_{max}','T_{max} Moving Average');
 end
 
 % Discrete Convolution 
@@ -63,7 +121,7 @@ end
 
 % Tapered Moving Average Filter
 function [result] = NoLagMovingAverage(input, number)
-    result = MovingAverage(input);
+    result = MovingAverage(input, number);
     for i=1:number
         result(i) = result(i) * (number / i);
     end
