@@ -10,7 +10,7 @@ function Lab07()
     frameCount = ceil((times(length(times))-times(1))*fps);
     pointsPerFrame = ceil(length(times)/frameCount);
     min = 0.0;
-    max = 0.5;
+    max = 0.25;
     
     windowedTimes = getWindowedTimes(data, Fs, fps, init);
     windowedData = getWindowedData(data, Fs, fps, init);
@@ -28,16 +28,18 @@ function Lab07()
     RGBblue = [51 102 255]/255;
     RGBgreen = [0 255 0]/255;
     for i=1:size(windowedData, 1)
-        subplot(4,1,1:3);
+        subplot(5,1,1:3);
         plot(fk, abs(FFTwindowedData(i,:)), 'Color', RGBblue);
+        title(['Spectrogram of Audio File']);
         xlabel('Frequency (Hz)');
         ylabel('Amplitude');
         axis tight;
         ylim([min max]);
-        subplot(4,1,4);
+        subplot(5,1,5);
         plot(times, data, 'Color', RGBblue);
         hold on;
         plot(windowedTimes(i,:), windowedData(i,:), 'Color', RGBgreen);
+        title(['Windowed Time Domain Data'])
         xlabel('Time (sec)');
         ylabel('Amplitude');
         axis tight;
