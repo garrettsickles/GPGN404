@@ -1,6 +1,6 @@
 function Lab08()
-    Problem1();
-    Problem2();
+    % Problem1();
+    % Problem2();
     Problem3();
 end
 
@@ -9,7 +9,7 @@ function Problem1()
     Ts = 1/Fs;
     
     Tmin = 0.0;
-    Tmax = 0.5;
+    Tmax = 3.0;
     
     N = ceil((Tmax-Tmin)*Fs)
     n = 1:N;
@@ -24,7 +24,7 @@ function Problem1()
         z(i) = sum(x .* sinc(tc(i)./Ts-(0:N-1)));
     end
     
-    figure;
+    figure('position', [0, 0, 750, 250]);
     plot(tc, y, 'color', 'b');
     hold on;
     plot(tc, z, 'color', [1,0.3,0]);
@@ -33,7 +33,7 @@ function Problem1()
     xlabel('Time (sec)');
     ylabel('Amplitude');
     legend('Original','Reconstructed','Samples Points');
-    title('Problem 1');
+    title('Problem 1: [0.0, 3.0] seconds');
 end
 
 function Problem2()
@@ -41,7 +41,7 @@ function Problem2()
     Ts = 1/Fs;
     
     Tmin = 0.0;
-    Tmax = 0.5;
+    Tmax = 3.0;
     
     N = ceil((Tmax-Tmin)*Fs)
     n = 1:N;
@@ -56,7 +56,7 @@ function Problem2()
         z(i) = sum(x .* sinc(tc(i)./Ts-(0:N-1)));
     end
     
-    figure;
+    figure('position', [0, 0, 750, 250]);
     plot(tc, y, 'color', 'b');
     hold on;
     plot(tc, z, 'color', [1,0.3,0]);
@@ -65,7 +65,7 @@ function Problem2()
     xlabel('Time (sec)');
     ylabel('Amplitude');
     legend('Original','Reconstructed','Samples Points');
-    title('Problem 2');
+    title('Problem 2: [0.0, 3.0] seconds');
 end
 
 function Problem3()
@@ -103,13 +103,15 @@ function Problem3()
             fixedTmin(i) = NaN;
         end
     end
-    for i=1:length(fixedDates)
-        if isnan(fixedTmax(i))
-            fixedTmax(i) = nansum(fixedTmax' .* sinc(fixedDates(i)-(0:N-1)));
-        end
-        if isnan(fixedTmin(i))
-            fixedTmin(i) = nansum(fixedTmin' .* sinc(fixedDates(i)-(0:N-1)));
-        end
+    rawTmin = fixedTmin;
+    rawTmax = fixedTmax;
+    for i=1:length(fixedDates)*4
+        %if isnan(fixedTmax(i))
+            fixedTmax(i) = nansum(rawTmax' .* sinc(fixedDates(i)/4-(0:N-1)));
+        %end
+        %if isnan(fixedTmin(i))
+            fixedTmin(i) = nansum(rawTmin' .* sinc(fixedDates(i)/4-(0:N-1)));
+        %end
     end
     
     
@@ -118,66 +120,80 @@ function Problem3()
     MAF_Tmin = MovingAverage(fixedTmin, period);
     NLMAF_Tmin = NoLagMovingAverage(fixedTmin, period);
     
-    figure('position', [0, 0, 600, 250]);
-    plot(fixedDates, fixedTmax, 'color', [0.0,0.0,0.0]+0.6);
-    hold on;
-    plot(MAF_Tmax(1:length(MAF_Tmax)));
+    figure('position', [0, 0, 750, 450]);
+    subplot(2,1,1);
+    plot(fixedDates, rawTmin, 'color', 'b');
     axis tight;
-    title('Maximum Temperature Raw Moving Average');
+    title('Minimum Temperature: Raw Data');
     xlabel('# of Days since 1 January 1893');
     ylabel('Tenths of ^{o}C');
-    legend('T_{max}','T_{max} Moving Average');
+    legend('Raw T_{min}');
+    subplot(2,1,2);
+    plot(fixedDates, fixedTmin, 'color', [1,0.3,0]);
+    axis tight;
+    title('Minimum Temperature: Sinc Interpolated');
+    xlabel('# of Days since 1 January 1893');
+    ylabel('Tenths of ^{o}C');
+    legend('Interpolated T_{min}');
+
+    figure('position', [0, 0, 750, 450]);
+    subplot(2,1,1);
+    plot(fixedDates, rawTmax, 'color', 'b');
+    axis tight;
+    title('Maximum Temperature: Raw Data');
+    xlabel('# of Days since 1 January 1893');
+    ylabel('Tenths of ^{o}C');
+    legend('Raw T_{max}');
+    subplot(2,1,2);
+    plot(fixedDates, fixedTmax, 'color', [1,0.3,0]);
+    axis tight;
+    title('Maximum Temperature: Sinc Interpolated');
+    xlabel('# of Days since 1 January 1893');
+    ylabel('Tenths of ^{o}C');
+    legend('Interpolated T_{max}');
     
-    figure('position', [0, 0, 600, 250]);
-    plot(fixedDates, fixedTmin, 'color', [0.0,0.0,0.0]+0.6);
-    hold on;
-    plot(MAF_Tmin(1:length(MAF_Tmin)));
-    axis tight;
-    title('Minimum Temperature Raw Moving Average');
-    xlabel('# of Days since 1 January 1893');
-    ylabel('Tenths of ^{o}C');
-    legend('T_{min}','T_{min} Moving Average');
-    
-    figure('position', [0, 0, 600, 250]);
-    plot(fixedDates, fixedTmax, 'color', [0.0,0.0,0.0]+0.6);
-    hold on;
-    plot(NLMAF_Tmax(1:length(NLMAF_Tmax)));
-    axis tight;
-    title('Maximum Temperature No Lag Moving Average');
-    xlabel('# of Days since 1 January 1893');
-    ylabel('Tenths of ^{o}C');
-    legend('T_{max}','T_{max} Moving Average');
-    
-    figure('position', [0, 0, 600, 250]);
-    plot(fixedDates, fixedTmin, 'color', [0.0,0.0,0.0]+0.6);
-    hold on;
-    plot(NLMAF_Tmin(1:length(NLMAF_Tmin)));
-    axis tight;
-    title('Minimum Temperature No Lag Moving Average');
-    xlabel('# of Days since 1 January 1893');
-    ylabel('Tenths of ^{o}C');
-    legend('T_{min}','T_{min} Moving Average');
-    
-    figure('position', [0, 0, 600, 250]);
-    subplot(1,2,1);
-    plot(fixedDates, fixedTmax, 'color', [0.0,0.0,0.0]+0.6);
-    hold on;
-    plot(MAF_Tmax(1:length(MAF_Tmax)));
-    axis tight;
-    title('Maximum Temperature Raw Moving Average');
-    xlabel('# of Days since 1 January 1893');
-    ylabel('Tenths of ^{o}C');
-    legend('T_{max}','T_{max} Moving Average');
-    
-    subplot(1,2,2);
-    plot(fixedDates, fixedTmax, 'color', [0.0,0.0,0.0]+0.6);
-    hold on;
-    plot(NLMAF_Tmax(1:length(NLMAF_Tmax)));
-    axis tight;
-    title('Maximum Temperature No Lag Moving Average');
-    xlabel('# of Days since 1 January 1893');
-    ylabel('Tenths of ^{o}C');
-    legend('T_{max}','T_{max} Moving Average');
+%     figure('position', [0, 0, 600, 250])
+%     
+%     figure('position', [0, 0, 600, 250]);
+%     plot(fixedDates, fixedTmax, 'color', [0.0,0.0,0.0]+0.6);
+%     hold on;
+%     plot(NLMAF_Tmax(1:length(NLMAF_Tmax)));
+%     axis tight;
+%     title('Maximum Temperature No Lag Moving Average');
+%     xlabel('# of Days since 1 January 1893');
+%     ylabel('Tenths of ^{o}C');
+%     legend('T_{max}','T_{max} Moving Average');
+%     
+%     figure('position', [0, 0, 600, 250]);
+%     plot(fixedDates, fixedTmin, 'color', [0.0,0.0,0.0]+0.6);
+%     hold on;
+%     plot(NLMAF_Tmin(1:length(NLMAF_Tmin)));
+%     axis tight;
+%     title('Minimum Temperature No Lag Moving Average');
+%     xlabel('# of Days since 1 January 1893');
+%     ylabel('Tenths of ^{o}C');
+%     legend('T_{min}','T_{min} Moving Average');
+%     
+%     figure('position', [0, 0, 600, 250]);
+%     subplot(1,2,1);
+%     plot(fixedDates, fixedTmax, 'color', [0.0,0.0,0.0]+0.6);
+%     hold on;
+%     plot(MAF_Tmax(1:length(MAF_Tmax)));
+%     axis tight;
+%     title('Maximum Temperature Raw Moving Average');
+%     xlabel('# of Days since 1 January 1893');
+%     ylabel('Tenths of ^{o}C');
+%     legend('T_{max}','T_{max} Moving Average');
+%     
+%     subplot(1,2,2);
+%     plot(fixedDates, fixedTmax, 'color', [0.0,0.0,0.0]+0.6);
+%     hold on;
+%     plot(NLMAF_Tmax(1:length(NLMAF_Tmax)));
+%     axis tight;
+%     title('Maximum Temperature No Lag Moving Average');
+%     xlabel('# of Days since 1 January 1893');
+%     ylabel('Tenths of ^{o}C');
+%     legend('T_{max}','T_{max} Moving Average');
 end
 
 % Discrete Convolution 
