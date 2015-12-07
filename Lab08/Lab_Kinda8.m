@@ -1,6 +1,6 @@
-function Lab08()
-    Problem1();
-    Problem2();
+function [stuff1, stuff2, stuff3] = Lab08()
+    % Problem1();
+    % Problem2();
     Problem3();
 end
 
@@ -11,7 +11,7 @@ function Problem1()
     Tmin = 0.0;
     Tmax = 3.0;
     
-    N = ceil((Tmax-Tmin)*Fs);
+    N = ceil((Tmax-Tmin)*Fs)
     n = 1:N;
     ts = (n-1).*Ts;
     tc = Tmin:0.001:Tmax;
@@ -43,7 +43,7 @@ function Problem2()
     Tmin = 0.0;
     Tmax = 3.0;
     
-    N = ceil((Tmax-Tmin)*Fs);
+    N = ceil((Tmax-Tmin)*Fs)
     n = 1:N;
     ts = (n-1).*Ts;
     tc = Tmin:0.001:Tmax;
@@ -86,14 +86,26 @@ function Problem3()
     Tmin = fixData(serialDates, rawTmin, invalid);
     Tmax = fixData(serialDates, rawTmax, invalid);
     
+    N = length(dates);
+    dates_interp = dates;
+    interpTmin = Tmin;
+    interpTmax = Tmax;
     % Interpolate the data
-    Ts_interp = 365;
-    dates_interp = dates(1):Ts_interp:dates(length(dates));
-    disp('Dates Outputted');
-    interpTmin = sincInterp(dates, Tmin, dates_interp, Ts_interp, 1e-1);
-    disp('Tmin Outputted');
-    interpTmax = sincInterp(dates, Tmax, dates_interp, Ts_interp, 1e-1);
-    disp('Tmax Outputted');
+    for i=1:length(dates)
+        if isnan(Tmax(i))
+            if i < 3000
+                interpTmax(i) = interpTmax(i-1);
+            elseif i > 37000
+                interpTmax(i) = nansum(Tmax' .* sinc(dates(i)-(0:N-1) - 1826*5));
+            else
+                interpTmax(i) = nansum(Tmax' .* sinc(dates(i)-(0:N-1) + 1826*3));
+            end
+                    
+        end
+        if isnan(Tmin(i))
+            interpTmin(i) = nansum(Tmin' .* sinc(dates(i)-(0:N-1) + 1825));
+        end
+     end
     
     figure('position', [0, 0, 750, 450]);
     subplot(2,1,1);
@@ -225,25 +237,12 @@ function [result] = fixData(input, values, invalid)
     for i=2:length(input)
         d = input(i) - input(i-1);
         if d > 1
-           result =  vertcat(result, nan(d-1, 1));
+            result = vertcat(result, nan(d-1, 1));
         end
         result = vertcat(result, values(i));
     end
-    result(isnan(result)) = [];
-    result(result == invalid) = [];
-end
-
-% Sinc Interpolate the data, by Jyoti Behura
-function [result] = sincInterp(input, values, output, Ts, tolerance)
-    ni = length(input);
-    no = length(output);
-    A = zeros(ni,no);
-    for i=0:ni-1
-        for j=0:no-1
-            A(i+1,j+1) = sinc((input(i+1)-output(j+1))/Ts);
-        end
-    end
-    result = pinv(A, tolerance)*values;
+    result(isnan(result)) = NaN;
+    result(result == invalid) = NaN;
 end
 
 % Produce a list of frequencies given a list of evenly spaced times
@@ -251,5 +250,5 @@ function [result] = getFrequencies(times)
     N = length(times);
     Ts = (times(N) - times(1)) / (N - 1);
     dF = 1 / (N * Ts);
-    result = ((0:N-1) - ceil(N/2))*dF;
+    result = ((1:N) - ceil(N/2))*dF;
 end
