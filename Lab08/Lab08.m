@@ -68,13 +68,13 @@ function Problem2()
     title('Problem 2: [0.0, 3.0] seconds');
 end
 
-function Problem3()
+function [dates_interp, interpTmin, interpTmax] = Problem3()
     % Load the data
     filename = 'Lab6_t_T.csv';
     rawData = importdata(filename);
     rawData = rawData.data;
     rawDates = rawData(:, 1);
-    rawTmax = rawData(:, 2);
+    % rawTmax = rawData(:, 2);
     rawTmin = rawData(:, 3);
     invalid = -9999;
     
@@ -84,17 +84,13 @@ function Problem3()
     dates = (serialDates(1):1:serialDates(length(serialDates))) - serialDates(1);
     
     Tmin = fixData(serialDates, rawTmin, invalid);
-    Tmax = fixData(serialDates, rawTmax, invalid);
+    % Tmax = fixData(serialDates, rawTmax, invalid);
     
     % Interpolate the data
     Ts_interp = 4;
     dates_interp = dates(1):Ts_interp:dates(length(dates));
     interpTmin = sincInterp(dates, Tmin, dates_interp, Ts_interp, 1e-1);
-    interpTmax = sincInterp(dates, Tmax, dates_interp, Ts_interp, 1e-1);
-    
-    Save2ws('interpTmin', interpTmin);
-    Save2ws('interpTmax', interpTmax);
-    Save2ws('dates_interp', dates_interp);
+    % interpTmax = sincInterp(dates, Tmax, dates_interp, Ts_interp, 1e-1);
     
     figure('position', [0, 0, 750, 450]);
     subplot(2,1,1);
@@ -112,32 +108,32 @@ function Problem3()
     ylabel('Tenths of ^{o}C');
     legend('Interpolated T_{min}');
 
-    figure('position', [0, 0, 750, 450]);
-    subplot(2,1,1);
-    plot(dates, Tmax, 'color', 'b');
-    axis tight;
-    title('Maximum Temperature: Raw Data');
-    xlabel('# of Days since 1 January 1893');
-    ylabel('Tenths of ^{o}C');
-    legend('Raw T_{max}');
-    subplot(2,1,2);
-    plot(dates_interp, interpTmax, 'color', [1,0.3,0]);
-    axis tight;
-    title('Maximum Temperature: Sinc Interpolated');
-    xlabel('# of Days since 1 January 1893');
-    ylabel('Tenths of ^{o}C');
-    legend('Interpolated T_{max}');
+%     figure('position', [0, 0, 750, 450]);
+%     subplot(2,1,1);
+%     plot(dates, Tmax, 'color', 'b');
+%     axis tight;
+%     title('Maximum Temperature: Raw Data');
+%     xlabel('# of Days since 1 January 1893');
+%     ylabel('Tenths of ^{o}C');
+%     legend('Raw T_{max}');
+%     subplot(2,1,2);
+%     plot(dates_interp, interpTmax, 'color', [1,0.3,0]);
+%     axis tight;
+%     title('Maximum Temperature: Sinc Interpolated');
+%     xlabel('# of Days since 1 January 1893');
+%     ylabel('Tenths of ^{o}C');
+%     legend('Interpolated T_{max}');
     
     Tmin_Xk = fftshift(fft(Tmin))/length(Tmin);
-    Tmax_Xk = fftshift(fft(Tmax))/length(Tmax);
-    Fk = getFrquencies(dates.*(24.0*60.0*60.0));
+%    Tmax_Xk = fftshift(fft(Tmax))/length(Tmax);
+    Fk = getFrequencies(dates.*(24.0*60.0*60.0));
     
     Ff = 1/(365.25*24.0*60.0*60.0);
     fTmin_Xk(abs(Tmin_Xk) < Ff) = 0.0;
-    fTmax_Xk(abs(Tmax_Xk) < Ff) = 0.0;
+%    fTmax_Xk(abs(Tmax_Xk) < Ff) = 0.0;
     
     invTmin = ifft(ifftshift(fTmin_Xk));
-    invTmax = ifft(ifftshift(fTmax_Xk));
+%    invTmax = ifft(ifftshift(fTmax_Xk));
     
     figure('position', [0, 0, 750, 450]);
     subplot(2,1,1);
@@ -155,21 +151,21 @@ function Problem3()
     title('Amplitude Spectrum of Filtered T_{min}');
     legend('Filtered T_{min}');
     
-    figure('position', [0, 0, 750, 450]);
-    subplot(2,1,1);
-    plot(Fk, abs(Tmin_Xk));
-    axis tight;
-    xlabel('Frequncy (Hz)');
-    ylabel('Amplitude');
-    title('Amplitude Spectrum of Raw T_{min}');
-    legend('Raw T_{min}');
-    subplot(2,1,2);
-    plot(Fk, abs(fTmin_Xk));
-    axis tight;
-    xlabel('Frequncy (Hz)');
-    ylabel('Amplitude');
-    title('Amplitude Spectrum of Filtered T_{min}');
-    legend('Filtered T_{min}');
+%     figure('position', [0, 0, 750, 450]);
+%     subplot(2,1,1);
+%     plot(Fk, abs(Tmax_Xk));
+%     axis tight;
+%     xlabel('Frequncy (Hz)');
+%     ylabel('Amplitude');
+%     title('Amplitude Spectrum of Raw T_{max}');
+%     legend('Raw T_{max}');
+%     subplot(2,1,2);
+%     plot(Fk, abs(fTmax_Xk));
+%     axis tight;
+%     xlabel('Frequncy (Hz)');
+%     ylabel('Amplitude');
+%     title('Amplitude Spectrum of Filtered T_{max}');
+%     legend('Filtered T_{max}');
     
     figure('position', [0, 0, 750, 450]);
     subplot(2,1,1);
@@ -187,21 +183,21 @@ function Problem3()
     ylabel('Tenths of ^{o}C');
     legend('Filtered T_{min}');
     
-    figure('position', [0, 0, 750, 450]);
-    subplot(2,1,1);
-    plot(dates, Tmin, 'color', 'b');
-    axis tight;
-    title('Maximum Temperature: Raw Data');
-    xlabel('# of Days since 1 January 1893');
-    ylabel('Tenths of ^{o}C');
-    legend('Raw T_{max}');
-    subplot(2,1,2);
-    plot(dates_interp, invTmin, 'color', [1,0.3,0]);
-    axis tight;
-    title('Maximum Temperature: Interpolated Filtered Data');
-    xlabel('# of Days since 1 January 1893');
-    ylabel('Tenths of ^{o}C');
-    legend('Filtered T_{max}');
+%     figure('position', [0, 0, 750, 450]);
+%     subplot(2,1,1);
+%     plot(dates, Tmin, 'color', 'b');
+%     axis tight;
+%     title('Maximum Temperature: Raw Data');
+%     xlabel('# of Days since 1 January 1893');
+%     ylabel('Tenths of ^{o}C');
+%     legend('Raw T_{max}');
+%     subplot(2,1,2);
+%     plot(dates_interp, invTmin, 'color', [1,0.3,0]);
+%     axis tight;
+%     title('Maximum Temperature: Interpolated Filtered Data');
+%     xlabel('# of Days since 1 January 1893');
+%     ylabel('Tenths of ^{o}C');
+%     legend('Filtered T_{max}');
 end
 
 % Fill in missing data
@@ -229,11 +225,6 @@ function [result] = sincInterp(input, values, output, Ts, tolerance)
         end
     end
     result = pinv(A, tolerance)*values;
-end
-
-% Produce a list of evenly spaced times given a dataset, Sampling Frequency, and initial time
-function [result] = getTimes(input, Fs, init)
-    result = init + (0:1:(length(input)-1))*(1/Fs);
 end
 
 % Produce a list of frequencies given a list of evenly spaced times
