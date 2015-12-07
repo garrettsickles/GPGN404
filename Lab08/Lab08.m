@@ -69,67 +69,43 @@ function Problem2()
 end
 
 function Problem3()
-    invalid = -9999;
+    % Load the data
     filename = 'Lab6_t_T.csv';
-    data = importdata(filename);
-    data = data.data;
-    dates = data(:, 1);
-    Tmax = data(:, 2);
-    Tmin = data(:, 3);
-    period = 365;
+    rawData = importdata(filename);
+    rawData = rawData.data;
+    rawDates = rawData(:, 1);
+    rawTmax = rawData(:, 2);
+    rawTmin = rawData(:, 3);
+    invalid = -9999;
     
-    serialDates = datenum(num2str(dates), 'yyyymmdd');
+    % Fill in the missing days
+    serialDates = datenum(num2str(rawDates), 'yyyymmdd');
     serialDates = serialDates - serialDates(1);
+    dates = (serialDates(1):1:serialDates(length(serialDates))) - serialDates(1);
     
-    fixedDates = serialDates(1):1:serialDates(length(serialDates));
-    N = length(fixedDates);
+    Tmin = fixData(serialDates, rawTmin, invalid);
+    Tmax = fixData(serialDates, rawTmax, invalid);
     
-    fixedTmin(1) = Tmin(1);
-    fixedTmax(1) = Tmax(1);
-    for i=2:length(serialDates)
-        d = serialDates(i) - serialDates(i-1);
-        if d > 1
-            fixedTmax = vertcat(fixedTmax, ones(d-1, 1).*invalid); 
-            fixedTmin = vertcat(fixedTmin, ones(d-1, 1).*invalid);
-        end
-        fixedTmax = vertcat(fixedTmax, Tmax(i));
-        fixedTmin = vertcat(fixedTmin, Tmin(i));
-    end
-    for i=1:length(fixedDates)
-        if fixedTmax(i) == invalid
-            fixedTmax(i) = NaN;
-        end
-        if fixedTmin(i) == invalid
-            fixedTmin(i) = NaN;
-        end
-    end
-    rawTmin = fixedTmin;
-    rawTmax = fixedTmax;
-    for i=1:length(fixedDates)*4
-        %if isnan(fixedTmax(i))
-            fixedTmax(i) = nansum(rawTmax' .* sinc(fixedDates(i)/4-(0:N-1)));
-        %end
-        %if isnan(fixedTmin(i))
-            fixedTmin(i) = nansum(rawTmin' .* sinc(fixedDates(i)/4-(0:N-1)));
-        %end
-    end
+    % Interpolate the data
+    Ts_interp = 4;
+    dates_interp = dates(1):Ts_interp:dates(length(dates));
+    interpTmin = sincInterp(dates, Tmin, dates_interp, Ts_interp, 1e-1);
+    interpTmax = sincInterp(dates, Tmax, dates_interp, Ts_interp, 1e-1);
     
-    
-    MAF_Tmax = MovingAverage(fixedTmax, period);
-    NLMAF_Tmax = NoLagMovingAverage(fixedTmax, period);
-    MAF_Tmin = MovingAverage(fixedTmin, period);
-    NLMAF_Tmin = NoLagMovingAverage(fixedTmin, period);
+    Save2ws('interpTmin', interpTmin);
+    Save2ws('interpTmax', interpTmax);
+    Save2ws('dates_interp', dates_interp);
     
     figure('position', [0, 0, 750, 450]);
     subplot(2,1,1);
-    plot(fixedDates, rawTmin, 'color', 'b');
+    plot(dates, Tmin, 'color', 'b');
     axis tight;
     title('Minimum Temperature: Raw Data');
     xlabel('# of Days since 1 January 1893');
     ylabel('Tenths of ^{o}C');
     legend('Raw T_{min}');
     subplot(2,1,2);
-    plot(fixedDates, fixedTmin, 'color', [1,0.3,0]);
+    plot(dates_interp, interpTmin, 'color', [1,0.3,0]);
     axis tight;
     title('Minimum Temperature: Sinc Interpolated');
     xlabel('# of Days since 1 January 1893');
@@ -138,84 +114,132 @@ function Problem3()
 
     figure('position', [0, 0, 750, 450]);
     subplot(2,1,1);
-    plot(fixedDates, rawTmax, 'color', 'b');
+    plot(dates, Tmax, 'color', 'b');
     axis tight;
     title('Maximum Temperature: Raw Data');
     xlabel('# of Days since 1 January 1893');
     ylabel('Tenths of ^{o}C');
     legend('Raw T_{max}');
     subplot(2,1,2);
-    plot(fixedDates, fixedTmax, 'color', [1,0.3,0]);
+    plot(dates_interp, interpTmax, 'color', [1,0.3,0]);
     axis tight;
     title('Maximum Temperature: Sinc Interpolated');
     xlabel('# of Days since 1 January 1893');
     ylabel('Tenths of ^{o}C');
     legend('Interpolated T_{max}');
     
-%     figure('position', [0, 0, 600, 250])
-%     
-%     figure('position', [0, 0, 600, 250]);
-%     plot(fixedDates, fixedTmax, 'color', [0.0,0.0,0.0]+0.6);
-%     hold on;
-%     plot(NLMAF_Tmax(1:length(NLMAF_Tmax)));
-%     axis tight;
-%     title('Maximum Temperature No Lag Moving Average');
-%     xlabel('# of Days since 1 January 1893');
-%     ylabel('Tenths of ^{o}C');
-%     legend('T_{max}','T_{max} Moving Average');
-%     
-%     figure('position', [0, 0, 600, 250]);
-%     plot(fixedDates, fixedTmin, 'color', [0.0,0.0,0.0]+0.6);
-%     hold on;
-%     plot(NLMAF_Tmin(1:length(NLMAF_Tmin)));
-%     axis tight;
-%     title('Minimum Temperature No Lag Moving Average');
-%     xlabel('# of Days since 1 January 1893');
-%     ylabel('Tenths of ^{o}C');
-%     legend('T_{min}','T_{min} Moving Average');
-%     
-%     figure('position', [0, 0, 600, 250]);
-%     subplot(1,2,1);
-%     plot(fixedDates, fixedTmax, 'color', [0.0,0.0,0.0]+0.6);
-%     hold on;
-%     plot(MAF_Tmax(1:length(MAF_Tmax)));
-%     axis tight;
-%     title('Maximum Temperature Raw Moving Average');
-%     xlabel('# of Days since 1 January 1893');
-%     ylabel('Tenths of ^{o}C');
-%     legend('T_{max}','T_{max} Moving Average');
-%     
-%     subplot(1,2,2);
-%     plot(fixedDates, fixedTmax, 'color', [0.0,0.0,0.0]+0.6);
-%     hold on;
-%     plot(NLMAF_Tmax(1:length(NLMAF_Tmax)));
-%     axis tight;
-%     title('Maximum Temperature No Lag Moving Average');
-%     xlabel('# of Days since 1 January 1893');
-%     ylabel('Tenths of ^{o}C');
-%     legend('T_{max}','T_{max} Moving Average');
+    Tmin_Xk = fftshift(fft(Tmin))/length(Tmin);
+    Tmax_Xk = fftshift(fft(Tmax))/length(Tmax);
+    Fk = getFrquencies(dates.*(24.0*60.0*60.0));
+    
+    Ff = 1/(365.25*24.0*60.0*60.0);
+    fTmin_Xk(abs(Tmin_Xk) < Ff) = 0.0;
+    fTmax_Xk(abs(Tmax_Xk) < Ff) = 0.0;
+    
+    invTmin = ifft(ifftshift(fTmin_Xk));
+    invTmax = ifft(ifftshift(fTmax_Xk));
+    
+    figure('position', [0, 0, 750, 450]);
+    subplot(2,1,1);
+    plot(Fk, abs(Tmin_Xk));
+    axis tight;
+    xlabel('Frequncy (Hz)');
+    ylabel('Amplitude');
+    title('Amplitude Spectrum of Raw T_{min}');
+    legend('Raw T_{min}');
+    subplot(2,1,2);
+    plot(Fk, abs(fTmin_Xk));
+    axis tight;
+    xlabel('Frequncy (Hz)');
+    ylabel('Amplitude');
+    title('Amplitude Spectrum of Filtered T_{min}');
+    legend('Filtered T_{min}');
+    
+    figure('position', [0, 0, 750, 450]);
+    subplot(2,1,1);
+    plot(Fk, abs(Tmin_Xk));
+    axis tight;
+    xlabel('Frequncy (Hz)');
+    ylabel('Amplitude');
+    title('Amplitude Spectrum of Raw T_{min}');
+    legend('Raw T_{min}');
+    subplot(2,1,2);
+    plot(Fk, abs(fTmin_Xk));
+    axis tight;
+    xlabel('Frequncy (Hz)');
+    ylabel('Amplitude');
+    title('Amplitude Spectrum of Filtered T_{min}');
+    legend('Filtered T_{min}');
+    
+    figure('position', [0, 0, 750, 450]);
+    subplot(2,1,1);
+    plot(dates, Tmin, 'color', 'b');
+    axis tight;
+    title('Minimum Temperature: Raw Data');
+    xlabel('# of Days since 1 January 1893');
+    ylabel('Tenths of ^{o}C');
+    legend('Raw T_{min}');
+    subplot(2,1,2);
+    plot(dates_interp, invTmin, 'color', [1,0.3,0]);
+    axis tight;
+    title('Minimum Temperature: Interpolated Filtered Data');
+    xlabel('# of Days since 1 January 1893');
+    ylabel('Tenths of ^{o}C');
+    legend('Filtered T_{min}');
+    
+    figure('position', [0, 0, 750, 450]);
+    subplot(2,1,1);
+    plot(dates, Tmin, 'color', 'b');
+    axis tight;
+    title('Maximum Temperature: Raw Data');
+    xlabel('# of Days since 1 January 1893');
+    ylabel('Tenths of ^{o}C');
+    legend('Raw T_{max}');
+    subplot(2,1,2);
+    plot(dates_interp, invTmin, 'color', [1,0.3,0]);
+    axis tight;
+    title('Maximum Temperature: Interpolated Filtered Data');
+    xlabel('# of Days since 1 January 1893');
+    ylabel('Tenths of ^{o}C');
+    legend('Filtered T_{max}');
 end
 
-% Discrete Convolution 
-function [result] = convolve(input, impulse)
-    result = zeros(length(input) + length(impulse) - 1,1);
-    for k=1:length(input)
-        for j=1:length(impulse)
-            result(k + j - 1) = result(k + j - 1) + impulse(j) * input(k);
+% Fill in missing data
+function [result] = fixData(input, values, invalid)
+    result(1) = values(1);
+    for i=2:length(input)
+        d = input(i) - input(i-1);
+        if d > 1
+            vertcat(result, nan(d-1, 1));
+        end
+        vertcat(result, values(i));
+    end
+    result(isnan(result)) = [];
+    result(result == invalid) = [];
+end
+
+% Sinc Interpolate the data, by Jyoti Behura
+function [result] = sincInterp(input, values, output, Ts, tolerance)
+    ni = length(input);
+    no = length(output);
+    A = zeros(ni,no);
+    for i=0:ni-1
+        for j=0:no-1
+            A(i+1,j+1) = sinc((input(i+1)-output(j+1))/Ts);
         end
     end
+    result = pinv(A, tolerance)*values;
 end
 
-% Moving Average Filter
-function [result] = MovingAverage(input, number)
-    impulse = ones(number, 1) ./ number;
-    result = convolve(input, impulse);
+% Produce a list of evenly spaced times given a dataset, Sampling Frequency, and initial time
+function [result] = getTimes(input, Fs, init)
+    result = init + (0:1:(length(input)-1))*(1/Fs);
 end
 
-% Tapered Moving Average Filter
-function [result] = NoLagMovingAverage(input, number)
-    result = MovingAverage(input, number);
-    for i=1:number
-        result(i) = result(i) * (number / i);
-    end
+% Produce a list of frequencies given a list of evenly spaced times
+function [result] = getFrequencies(times)
+    N = length(times);
+    Ts = (times(N) - times(1)) / (N - 1);
+    dF = 1 / (N * Ts);
+    result = ((0:N-1) - ceil(N/2))*dF;
 end
