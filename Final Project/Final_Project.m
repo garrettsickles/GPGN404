@@ -1,4 +1,4 @@
-function Final_Project(title)
+function Final_Project(name)
     % Import the data
     junk1 = importdata(uigetfile('*.*','Played audio file'));
     junk2 = importdata(uigetfile('*.*','Recorded audio file'));
@@ -33,16 +33,23 @@ function Final_Project(title)
     % Plot the the played
     time2freq(played.data, played.fs, 'Played Frequency Sweep');
     % Plot the the recorder
-    time2freq(record.data, record.fs, ['Recorded in ', title]);
+    time2freq(record.data, record.fs, ['Recorded in ', name]);
     % Plot the the input
     time2freq(input.data, input.fs, 'Input: Mr. Mackey');
     % Plot the the filter
-    time2freq(filter.data, filter.fs, ['Filter in ', title]);
+    time = Tn(filter.data, filter.fs, 0.0);
+    figure('position', [0, 0, 800, 250]);
+    plot(Fk(time), fftshift(fft(filter.data)));
+    title(['Frequency Domain Response of the Filter in ', name]);
+    xlabel('Frequency (Hz)');
+    ylabel('Amplitude');
+    axis tight;
+    % time2freq(filter.data, filter.fs, ['Filter in ', title]);
     % Simulate a noise through the filter
     output = struct('data', ifft(fft(input.data, N).*fft(filter.data, N)), 'fs', filter.fs);
     % Plot the the sound
     output.data = output.data ./ max(output.data);
-    time2freq(output.data, output.fs, [' Mr. Mackey in ', title]);
+    time2freq(output.data, output.fs, [' Mr. Mackey in ', name]);
     % Write the simulated output
     audiowrite('Output.wav', output.data, output.fs);
 end
